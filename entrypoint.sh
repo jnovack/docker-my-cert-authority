@@ -41,20 +41,27 @@ fi
 
 ## Automated CSR Processing (no user input)
 
-while getopts ":g:r:i:k:qnal" opt; do
+while getopts ":g:r:i:k:p:qncl" opt; do
     case $opt in
-        a)
+        c)
             # Print out Certiciate Authority Cert
             cat /opt/ca/ca.crt
             exit 0
             ;;
         i)
             # Print client certificate information
-            if [ -z "$OPTARG" ]; then echo " !! Missing argument for -c"; exit 1; fi
-            openssl x509 -in /opt/certs/${OPTARG}.crt -noout -subject -startdate -enddate -fingerprint -sha256 -serial | sed "s/^/        /g"
+            if [ -z "$OPTARG" ]; then echo " !! Missing argument for -i"; exit 1; fi
+            openssl x509 -in /opt/private/${OPTARG}.crt -noout -subject -startdate -enddate -fingerprint -sha256 -serial | sed "s/^/        /g"
+            exit 0
             ;;
         l)
             cat /opt/ca/ca.crl
+            exit 0
+            ;;
+        p)
+            if [ -z "$OPTARG" ]; then echo " !! Missing argument for -p"; exit 1; fi
+            FILE=$(echo ${OPTARG} | sed -e 's/[^A-Za-z0-9._-]/_/g') # Basic sanitation.
+            cat /opt/private/${FILE}.crt
             exit 0
             ;;
         k)
@@ -133,9 +140,22 @@ function generateCertificate() {
 
     [ -f /opt/private/${COMMONNAME}.crt ] && echo " !! Certificate ${COMMONNAME}.crt already exists..." && exit 1;
 
-    # Replace the commonName on each iteration
-    ITERATION_CN=`grep "commonName_default" /opt/openssl.runtime.cnf | awk -F "= " -e '{ print $2; }'`
-    sed -i "s/${ITERATION_CN}/${COMMONNAME}/" /opt/openssl.runtime.cnf
+    ## Replace defaults with environment variables for runtime
+    cp /opt/openssl.cnf /opt/openssl.runtime.cnf
+    DEFAULT_C=`grep "countryName_default" /opt/openssl.cnf | awk -F "= " -e '{ print $2; }'`
+    DEFAULT_ST=`grep "stateOrProvinceName_default" /opt/openssl.cnf | awk -F "= " -e '{ print $2; }'`
+    DEFAULT_L=`grep "localityName_default" /opt/openssl.cnf | awk -F "= " -e '{ print $2; }'`
+    DEFAULT_O=`grep "0.organizationName_default" /opt/openssl.cnf | awk -F "= " -e '{ print $2; }'`
+    DEFAULT_OU=`grep "organizationalUnitName_default" /opt/openssl.cnf | awk -F "= " -e '{ print $2; }'`
+    DEFAULT_EMAIL=`grep "emailAddress_default" /opt/openssl.cnf | awk -F "= " -e '{ print $2; }'`
+    DEFAULT_CN=`grep "commonName_default" /opt/openssl.runtime.cnf | awk -F "= " -e '{ print $2; }'`
+    sed -i "s/${DEFAULT_C}/${C}/" /opt/openssl.runtime.cnf
+    sed -i "s/${DEFAULT_ST}/${ST}/" /opt/openssl.runtime.cnf
+    sed -i "s/${DEFAULT_L}/${L}/" /opt/openssl.runtime.cnf
+    sed -i "s/${DEFAULT_O}/${O}/" /opt/openssl.runtime.cnf
+    sed -i "s/${DEFAULT_OU}/${OU}/" /opt/openssl.runtime.cnf
+    sed -i "s/${DEFAULT_EMAIL}/${EMAIL}/" /opt/openssl.runtime.cnf
+    sed -i "s/${DEFAULT_CN}/${COMMONNAME}/" /opt/openssl.runtime.cnf
 
     output
     output " !! Generating a client certificate for $COMMONNAME"

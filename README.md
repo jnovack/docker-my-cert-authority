@@ -41,8 +41,9 @@ client certificates to create.
 
 * `-g commonName` - Generate a client certificate
 * `-r commonName` - Revoke a client certificate
-* `-i commonName` - Print client certificate information
+* `-p commonName` - Print client public certificate
 * `-k commonName` - Print client private key
+* `-i commonName` - Print client certificate information
 
 **WARNING:** It is not recommented to mix actions. No error-checking is
 performed.
