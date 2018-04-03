@@ -1,7 +1,8 @@
 # my-cert-authority
 
-Quick and easy generate a Certificate Authority (CA), Certificate
-Revocation List (CRL) and many client Certificates (CRTs).
+Quick and easy Certificate Authority (CA) with a Certificate
+Revocation List (CRL) to automate generating client Certificates
+(CRTs).
 
 ## Quick Start
 
@@ -38,9 +39,10 @@ client certificates to create.
 
 #### Actions
 
-* `-i name` - Print client certificate information
-* `-g name` - Create a client certificate
-* `-r name` - Revoke a client certificate
+* `-g commonName` - Generate a client certificate
+* `-r commonName` - Revoke a client certificate
+* `-i commonName` - Print client certificate information
+* `-k commonName` - Print client private key
 
 **WARNING:** It is not recommented to mix actions. No error-checking is
 performed.
@@ -68,7 +70,9 @@ client certificates without user input.
 * `-n` - Perform actions non-interactively
 
 Once you complete the initial CA setup, you can quickly and easily
-generate client certificates with a simple command-line.
+generate client certificates with a simple command-line.  Generating
+a certificate with `-n` will accept all the defaults only overriding
+where you set environment variables.
 
 ### Generate a certificate (non-interactively)
 
@@ -77,7 +81,6 @@ docker run -it --rm \
     --mount source=ca-project.example,target=/opt/
     jnovack/my-cert-authority -n -g jnovack.project.example
 ```
-
 
 ### Revoke a certificate (non-interactively)
 ```
@@ -117,6 +120,14 @@ docker run -it --rm \
 
 ```
 
+The `public/` directory is intended to be fully sharable. There are a
+number of ways to accomplish this.
+
+* Periodically copy out the `public/` directory to another container
+or folder.
+
+* Mount in a second volume specifically to `/opt/public/` so that
+certificates are available.
 
 ## Why This Is a Bad Idea(tm)
 
@@ -139,3 +150,21 @@ volumes and containers are just extensions of your file system.
 I am constantly developing or testing some software that requires a
 CA and signed client certificates, and in order to minimize my setup
 time, I use this.  I have no expectation that this is secure.
+
+### You could just...
+
+Sure, there's plenty of things I COULD do to make this secure, but then
+it will not be "quick and easy".
+
+I could make an encrypted CA private key, but then I would not have the
+ability to go "non-interactive", as every cert would require you to
+enter in the password.
+
+I could make an encrypted CA private key and then generate an
+intermediate CA with an unencrypted key. But then I would need to mash
+the root and intermediate certificates together in the downstream
+applications. You've worked with Intermediate CAs before, you know how
+annoying they are.
+
+Eventually I will expand the project to include one or both of those
+options, but that is not today.
