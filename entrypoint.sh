@@ -41,12 +41,12 @@ fi
 
 ## Automated CSR Processing (no user input)
 
-while getopts ":g:r:qnai:l" opt; do
+while getopts ":g:r:i:k:qnal" opt; do
     case $opt in
         a)
             # Print out Certiciate Authority Cert
             cat /opt/ca/ca.crt
-            exit 0;
+            exit 0
             ;;
         i)
             # Print client certificate information
@@ -55,7 +55,13 @@ while getopts ":g:r:qnai:l" opt; do
             ;;
         l)
             cat /opt/ca/ca.crl
-            exit 0;
+            exit 0
+            ;;
+        k)
+            if [ -z "$OPTARG" ]; then echo " !! Missing argument for -k"; exit 1; fi
+            FILE=$(echo ${OPTARG} | sed -e 's/[^A-Za-z0-9._-]/_/g') # Basic sanitation.
+            cat /opt/private/${FILE}.key
+            exit 0
             ;;
         q)
             QUIET=true
@@ -66,11 +72,11 @@ while getopts ":g:r:qnai:l" opt; do
             ;;
         g)
             if [ -z "$OPTARG" ]; then echo " !! Missing argument for -n"; exit 1; fi
-            COMMONNAME="$OPTARG"
+            COMMONNAME=$(echo ${OPTARG} | sed -e 's/[^A-Za-z0-9._-]/_/g') # Basic sanitation.
             ;;
         r)
             if [ -z "$OPTARG" ]; then echo " !! Missing argument for -r"; exit 1; fi
-            REVOKE="$OPTARG"
+            REVOKE=$(echo ${OPTARG} | sed -e 's/[^A-Za-z0-9._-]/_/g') # Basic sanitation.
             ;;
     esac
 done
