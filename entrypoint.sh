@@ -212,6 +212,25 @@ function generateCertificate() {
     sed -i "s/${DEFAULT_EMAIL}/${EMAIL}/" /opt/openssl.runtime.cnf
     sed -i "s/${DEFAULT_CN}/${COMMONNAME}/" /opt/openssl.runtime.cnf
 
+    if [ $EXTENSION == "server" ]; then
+        echo "[ san_custom ]" >> /opt/openssl.runtime.cnf
+
+        echo -e "Please list your IP SANs. End with a blank line..."
+        i=1
+        while read -p "$(echo IP.${i} = ) "  -r line && [ -n "${line}" ]; do
+            echo "IP.${i} = ${line}" >> /opt/openssl.runtime.cnf
+            i=$((i+1))
+        done
+
+        echo "DNS.1 = ${COMMONNAME}" >> /opt/openssl.runtime.cnf
+        echo -e "Please list your additional DNS SANs. End with a blank line..."
+        i=2
+        while read -p "$(echo DNS.${i} = ) " -r line && [ -n "${line}" ]; do
+            echo "DNS.${i} = ${line}" >> /opt/openssl.runtime.cnf
+            i=$((i+1))
+        done
+    fi
+
     output " !! Generating a ${EXTENSION} certificate for ${COMMONNAME}"
 
     if [ "$NONINTERACTIVE" = true ] ; then
@@ -232,7 +251,7 @@ function generateCertificate() {
             -out /opt/root/private/${COMMONNAME}.crt \
             -notext \
             -policy policy_optional \
-            -updatedb -config /opt/openssl.cnf -batch > /dev/null 2>&1
+            -updatedb -config /opt/openssl.runtime.cnf -batch > /dev/null 2>&1
 
     md5cert="$(openssl x509 -in /opt/root/private/${COMMONNAME}.crt -noout -modulus | openssl md5)"
     md5key="$(openssl rsa -in /opt/root/private/${COMMONNAME}.key -noout -modulus | openssl md5)"
