@@ -48,8 +48,6 @@ SUBJECT="/"
 [ ! -z "$OU" ]    && SUBJECT="${SUBJECT}OU=${OU}/"
 SUBJECT="${SUBJECT}CN=${CN}/"
 
-output ${SUBJECT}
-
 while getopts ":g:r:i:k:p:e:qncl" opt; do
     case $opt in
         c)
@@ -215,7 +213,7 @@ function generateCertificate() {
     output " !! Generating a ${EXTENSION} certificate for ${COMMONNAME}"
 
     if [ "$NONINTERACTIVE" = true ] ; then
-        SUBJECT=$(echo $SUBJECT | sed "s/CN=[^/]+/CN=${COMMONNAME}/")
+        SUBJECT=$(echo $SUBJECT | sed -e "s/CN=[^/]\+/CN=${COMMONNAME}/")
         NOPASS=" -passout pass:"
         openssl req -new -newkey rsa:4096 -keyout /opt/root/private/${COMMONNAME}.key -out /opt/root/private/${COMMONNAME}.csr -nodes \
             -subj "${SUBJECT}" \
@@ -230,6 +228,8 @@ function generateCertificate() {
             -extensions v3_${EXTENSION} \
             -in /opt/root/private/${COMMONNAME}.csr \
             -out /opt/root/private/${COMMONNAME}.crt \
+            -notext \
+            -policy policy_optional \
             -updatedb -config /opt/openssl.cnf -batch > /dev/null 2>&1
 
     md5cert="$(openssl x509 -in /opt/root/private/${COMMONNAME}.crt -noout -modulus | openssl md5)"
