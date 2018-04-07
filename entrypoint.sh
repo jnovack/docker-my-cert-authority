@@ -50,7 +50,7 @@ SUBJECT="${SUBJECT}CN=${CN}/"
 
 output ${SUBJECT}
 
-while getopts ":g:r:i:k:p:qncl" opt; do
+while getopts ":g:r:i:k:p:e:qncl" opt; do
     case $opt in
         c)
             # Print out Certiciate Authority Cert
@@ -78,6 +78,15 @@ while getopts ":g:r:i:k:p:qncl" opt; do
             FILE=$(echo ${OPTARG} | sed -e 's/[^A-Za-z0-9._-]/_/g') # Basic sanitation.
             cat /opt/root/private/${FILE}.key
             exit 0
+            ;;
+        e)
+            if [ -z "$OPTARG" ]; then echo " !! Missing argument for -e"; exit 1; fi
+            [ ! -z "$OPTARG" ] \
+                || [ $OPTARG == "s"] || [ $OPTARG == "server"] \
+                || [ $OPTARG == "c"] || [ $OPTARG == "client"] \
+                || [ $OPTARG == "u"] || [ $OPTARG == "user"] \
+                || (echo " !! -e [server|client|user]"; exit 1)
+            EXTENSION=$OPTARG
             ;;
         q)
             QUIET=true
@@ -157,6 +166,34 @@ function generateCertificate() {
 
     [ -f /opt/root/public/certs/${COMMONNAME}.crt ] && echo " !! Certificate ${COMMONNAME}.crt already exists..." && exit 1;
 
+    while [ -z $EXTENSION ] && read -p "Type (server, client, user): " -r OPT && [ -n "${OPT}" ]; do
+        case $OPT in
+            server)
+                EXTENSION="server"
+                break
+                ;;
+            s)
+                EXTENSION="server"
+                break
+                ;;
+            client)
+                EXTENSION="client"
+                break
+                ;;
+            c)
+                EXTENSION="client"
+                break
+                ;;
+            user)
+                EXTENSION="user"
+                break
+                ;;
+            u)
+                EXTENSION="user"
+                break
+                ;;
+        esac
+    done
 
     ## Replace defaults with environment variables for runtime
     cp /opt/openssl.cnf /opt/openssl.runtime.cnf
@@ -175,7 +212,7 @@ function generateCertificate() {
     sed -i "s/${DEFAULT_EMAIL}/${EMAIL}/" /opt/openssl.runtime.cnf
     sed -i "s/${DEFAULT_CN}/${COMMONNAME}/" /opt/openssl.runtime.cnf
 
-    output " !! Generating a client certificate for $COMMONNAME"
+    output " !! Generating a ${EXTENSION} certificate for ${COMMONNAME}"
 
     if [ "$NONINTERACTIVE" = true ] ; then
         SUBJECT=$(echo $SUBJECT | sed "s/CN=[^/]+/CN=${COMMONNAME}/")
@@ -224,6 +261,8 @@ function generateCertificate() {
         output "ERROR: Keys did not generate properly.  Start crying now."
         exit 1
     fi
+
+    unset EXTENSION
 }
 
 function revokeCertificate() {
