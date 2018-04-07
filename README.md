@@ -1,8 +1,8 @@
 # my-cert-authority
 
 Quick and easy Certificate Authority (CA) with a Certificate
-Revocation List (CRL) to automate generating client Certificates
-(CRTs).
+Revocation List (CRL) to automate generating Certificates (CRTs) for
+servers, clients, and users.
 
 ## Quick Start
 
@@ -13,7 +13,7 @@ which case, you will want to run as follows:
 docker run -it -v /path/to/ca/:/opt/ --rm jnovack/my-cert-authority
 ```
 
-Or more appropriately, with volume containers:
+Or more appropriately, up your Docker game with volume containers:
 
 ```
 docker volume create --name ca-project.example
@@ -21,6 +21,9 @@ docker run -it --rm \
     --mount source=ca-project.example,target=/opt/
     jnovack/my-cert-authority
 ```
+
+When running the container with an empty volume mounted, you will be
+prompted to enter in the defaults for the `openssl.cnf` file.
 
 ## Command-Line Arguments and Environment Variables
 
@@ -33,7 +36,7 @@ client certificates to create.
 
 ### Command-Line Arguments
 
-* `-q` - No output (can be combined with some other options)
+* `-q` - No output (can be combined with Actions)
 * `-a` - Print the Certificate Authority signing certificate
 * `-l` - Print the Certificate Revocation List certificate
 
@@ -44,11 +47,12 @@ client certificates to create.
 * `-p commonName` - Print client public certificate
 * `-k commonName` - Print client private key
 * `-i commonName` - Print client certificate information
+* `-e certificateType` - Client Certificate Type (server, user, client)
 
 **WARNING:** It is not recommented to mix actions. No error-checking is
 performed.
 
-## Environment Variables for CSRs
+### Environment Variables for CSRs
 
 Environment variables can override any field on a client certificate.
 
@@ -63,7 +67,7 @@ Environment variables can override any field on a client certificate.
 `policy = policy_optional`, changing the wrong environment variable can
 prevent your certificate from being generated.
 
-## Automation
+### Automation
 
 You can use the non-interactive flag (`-n`) to generate and revoke
 client certificates without user input.
@@ -75,19 +79,38 @@ generate client certificates with a simple command-line.  Generating
 a certificate with `-n` will accept all the defaults only overriding
 where you set environment variables.
 
-### Generate a certificate (non-interactively)
+## Examples
+
+### Generate a certificate (interactively)
 
 ```
 docker run -it --rm \
-    --mount source=ca-project.example,target=/opt/
-    jnovack/my-cert-authority -n -g jnovack.project.example
+    --mount source=ca-project.example,target=/opt/ jnovack/my-cert-authority
 ```
+
+### Generate a client certificate (non-interactively for user.project.example)
+
+```
+docker run -it --rm \
+    --mount source=ca-project.example,target=/opt/ jnovack/my-cert-authority \
+    -n -t client -g user.project.example
+```
+
 
 ### Revoke a certificate (non-interactively)
+
 ```
 docker run -it --rm \
-    --mount source=ca-project.example,target=/opt/
-    jnovack/my-cert-authority -n -r jnovack.project.example
+    --mount source=ca-project.example,target=/opt/ jnovack/my-cert-authority \
+    -n -r user.project.example
+```
+
+### Print user private key, certificate, and CA certificate
+
+```
+docker run -it --rm \
+    --mount source=ca-project.example,target=/opt/ jnovack/my-cert-authority \
+    -cp user.project.example -k user.project.example
 ```
 
 ## Container Structure

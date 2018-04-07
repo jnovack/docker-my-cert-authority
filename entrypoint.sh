@@ -53,29 +53,29 @@ while getopts ":g:r:i:k:p:e:qncl" opt; do
         c)
             # Print out Certiciate Authority Cert
             cat /opt/root/ca.crt
-            exit 0
+            EXIT=true
             ;;
         i)
             # Print client certificate information
             if [ -z "$OPTARG" ]; then echo " !! Missing argument for -i"; exit 1; fi
             openssl x509 -in /opt/root/private/${OPTARG}.crt -noout -subject -startdate -enddate -fingerprint -sha256 -serial | sed "s/^/        /g"
-            exit 0
+            EXIT=true
             ;;
         l)
             cat /opt/root/ca.crl
-            exit 0
+            EXIT=true
             ;;
         p)
             if [ -z "$OPTARG" ]; then echo " !! Missing argument for -p"; exit 1; fi
             FILE=$(echo ${OPTARG} | sed -e 's/[^A-Za-z0-9._-]/_/g') # Basic sanitation.
             cat /opt/root/public/certs/${FILE}.crt
-            exit 0
+            EXIT=true
             ;;
         k)
             if [ -z "$OPTARG" ]; then echo " !! Missing argument for -k"; exit 1; fi
             FILE=$(echo ${OPTARG} | sed -e 's/[^A-Za-z0-9._-]/_/g') # Basic sanitation.
             cat /opt/root/private/${FILE}.key
-            exit 0
+            EXIT=true
             ;;
         e)
             if [ -z "$OPTARG" ]; then echo " !! Missing argument for -e"; exit 1; fi
@@ -103,6 +103,8 @@ while getopts ":g:r:i:k:p:e:qncl" opt; do
             ;;
     esac
 done
+
+if [ ! -z $EXIT ]; then exit 0; fi
 
 ## CA files are missing, regenerate entire structure destructively since it's borked anyway.
 if ([ ! -f /opt/root/ca/private/ca.key ] || [ ! -f /opt/root/ca.crt ]); then
