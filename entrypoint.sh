@@ -50,8 +50,6 @@ SUBJECT="${SUBJECT}CN=${CN}/"
 
 output ${SUBJECT}
 
-## Automated CSR Processing (no user input)
-
 while getopts ":g:r:i:k:p:qncl" opt; do
     case $opt in
         c)
@@ -221,6 +219,7 @@ function generateCertificate() {
         fi
     else
         output "ERROR: Keys did not generate properly.  Start crying now."
+        exit 1
     fi
 }
 
@@ -234,8 +233,8 @@ function revokeCertificate() {
             echo
         fi;
 
-        openssl ca -name CA_root -revoke /opt/private/${REVOKE}.crt -config /opt/openssl.cnf > /dev/null 2>&1 #-keyfile /opt/ca/private/ca.key -cert /opt/ca/ca.crt
-        openssl ca -name CA_root -gencrl -out /opt/ca/ca.crl -config /opt/openssl.cnf > /dev/null 2>&1 #-keyfile /opt/ca/private/ca.key -cert /opt/ca/ca.crt -out /opt/ca/ca.crl
+        openssl ca -name CA_root -revoke /opt/private/${REVOKE}.crt -config /opt/openssl.cnf > /dev/null 2>&1
+        openssl ca -name CA_root -gencrl -out /opt/ca/ca.crl -config /opt/openssl.cnf > /dev/null 2>&1
 
         SERIAL=`openssl x509 -in /opt/private/${REVOKE}.crt -noout -serial | awk -F "=" -e '{ print $2; }'`
         mkdir -p /opt/private/.revoked/${SERIAL}/
