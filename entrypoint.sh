@@ -13,31 +13,42 @@ if [ ! -f /opt/openssl.cnf ]; then
     echo
     echo " !! Initializing openssl.cnf..."
     echo
-    [ -z "$C" ]       && read -p "Country Name (2 letter code) [XX]: " -r C
-    [ -z "$ST" ]      && read -p "State or Province Name (full name) [My State]: " -r ST
-    [ -z "$L" ]       && read -p "Locality Name (city, district) [My City]: " -r L
-    [ -z "$O" ]       && read -p "Organization Name (company) [My Company]: " -r O
-    [ -z "$OU" ]      && read -p "Organizational Unit Name (department, division) [My Department]: " -r OU
-    [ -z "$EMAIL" ]   && read -p "Email Address [nobody@localhost]: " -r EMAIL
-    [ -z "$CN" ]      && read -p "Common Name [localhost.localdomain]: " -r CN
+    [ -z "$C" ]       && read -p "Set 'Country Name' (C) [no]: " -r Y && [ ! -z "${Y}" ] && read -p "-- Country Name (2 letter code) [XX]: " -r C
+    [ -z "$ST" ]      && read -p "Set 'State or Province Name' (ST) [no]: " -r Y && [ ! -z "${Y}" ] && read -p "-- State or Province Name (full name) [My State]: " -r ST
+    [ -z "$L" ]       && read -p "Set 'Locality Name' (L) [no]: " -r Y && [ ! -z "${Y}" ] && read -p "-- Locality Name (city, district) [My City]: " -r L
+    [ -z "$O" ]       && read -p "Set 'Organization Name' (O) [no]: " -r Y && [ ! -z "${Y}" ] && read -p "-- Organization Name (company) [My Company]: " -r O
+    [ -z "$OU" ]      && read -p "Set 'Organizational Unit Name' (OU) [no]: " -r Y && [ ! -z "${Y}" ] && read -p "-- Organizational Unit Name (department, division) [My Department]: " -r OU
+    [ -z "$EMAIL" ]   && read -p "Set 'Email Address' [no]: " -r Y && [ ! -z "${Y}" ] && read -p "-- Email Address [nobody@localhost]: " -r EMAIL
+    [ -z "$CN" ]      && read -p "-- Common Name [localhost.localdomain]: " -r CN
     cp /openssl.tmpl /opt/openssl.cnf
-    [ ! -z "$C" ]     && sed -i "s/XX/${C}/" /opt/openssl.cnf
-    [ ! -z "$ST" ]    && sed -i "s/My State/${ST}/" /opt/openssl.cnf
-    [ ! -z "$L" ]     && sed -i "s/My City/${L}/" /opt/openssl.cnf
-    [ ! -z "$O" ]     && sed -i "s/My Company/${O}/" /opt/openssl.cnf
-    [ ! -z "$OU" ]    && sed -i "s/My Department/${OU}/" /opt/openssl.cnf
-    [ ! -z "$EMAIL" ] && sed -i "s/nobody@localhost/${EMAIL}/" /opt/openssl.cnf
+    [ ! -z "$EMAIL" ] && sed -i "s/nobody@localhost/${EMAIL}/" /opt/openssl.cnf      && sed -i "s/\#emailAddress/emailAddress/" /opt/openssl.cnf
+    [ ! -z "$C" ]     && sed -i "s/XX/${C}/" /opt/openssl.cnf                        && sed -i "s/\#countryName/countryName/" /opt/openssl.cnf
+    [ ! -z "$ST" ]    && sed -i "s/My State/${ST}/" /opt/openssl.cnf                 && sed -i "s/\#stateOrProvinceName/stateOrProvinceName/" /opt/openssl.cnf
+    [ ! -z "$L" ]     && sed -i "s/My City/${L}/" /opt/openssl.cnf                   && sed -i "s/\#localityName/localityName/" /opt/openssl.cnf
+    [ ! -z "$O" ]     && sed -i "s/My Company/${O}/" /opt/openssl.cnf                && sed -i "s/\#0.organizationName/0.organizationName/" /opt/openssl.cnf
+    [ ! -z "$OU" ]    && sed -i "s/My Department/${OU}/" /opt/openssl.cnf            && sed -i "s/\#organizationalUnitName/organizationalUnitName/" /opt/openssl.cnf
     [ ! -z "$CN" ]    && sed -i "s/localhost.localdomain/${CN}/" /opt/openssl.cnf
 fi
 
-## Set Environment
-[ -z "$C" ]     && C=`grep "countryName_default" /opt/openssl.cnf | awk -F "= " -e '{ print $2; }'`
-[ -z "$ST" ]    && ST=`grep "stateOrProvinceName_default" /opt/openssl.cnf | awk -F "= " -e '{ print $2; }'`
-[ -z "$L" ]     && L=`grep "localityName_default" /opt/openssl.cnf | awk -F "= " -e '{ print $2; }'`
-[ -z "$O" ]     && O=`grep "0.organizationName_default" /opt/openssl.cnf | awk -F "= " -e '{ print $2; }'`
-[ -z "$OU" ]    && OU=`grep "organizationalUnitName_default" /opt/openssl.cnf | awk -F "= " -e '{ print $2; }'`
-[ -z "$EMAIL" ] && EMAIL=`grep "emailAddress_default" /opt/openssl.cnf | awk -F "= " -e '{ print $2; }'`
-[ -z "$CN" ]    && CN=`grep "commonName_default" /opt/openssl.cnf | awk -F "= " -e '{ print $2; }'`
+## Set Environment and Build Subject
+##  (there's got to be a better way, not sure why ( expr1 || expr2) && (expr3 && expr4 ) does not work. )
+[ ! -z "$EMAIL" ] || EMAIL=`grep "^emailAddress_default" /opt/openssl.cnf | awk -F "= " -e '{ print $2; }'`
+[ ! -z "$C" ]     || C=`grep "^countryName_default" /opt/openssl.cnf | awk -F "= " -e '{ print $2; }'`
+[ ! -z "$ST" ]    || ST=`grep "^stateOrProvinceName_default" /opt/openssl.cnf | awk -F "= " -e '{ print $2; }'`
+[ ! -z "$L" ]     || L=`grep "^localityName_default" /opt/openssl.cnf | awk -F "= " -e '{ print $2; }'`
+[ ! -z "$O" ]     || O=`grep "^0.organizationName_default" /opt/openssl.cnf | awk -F "= " -e '{ print $2; }'`
+[ ! -z "$OU" ]    || OU=`grep "^organizationalUnitName_default" /opt/openssl.cnf | awk -F "= " -e '{ print $2; }'`
+[ ! -z "$CN" ]    || CN=`grep "^commonName_default" /opt/openssl.cnf | awk -F "= " -e '{ print $2; }'`
+SUBJECT="/"
+[ ! -z "$EMAIL" ] && SUBJECT="${SUBJECT}emailAddress=${EMAIL}/"
+[ ! -z "$C" ]     && SUBJECT="${SUBJECT}C=${C}/"
+[ ! -z "$ST" ]    && SUBJECT="${SUBJECT}ST=${ST}/"
+[ ! -z "$L" ]     && SUBJECT="${SUBJECT}L=${L}/"
+[ ! -z "$O" ]     && SUBJECT="${SUBJECT}O=${O}/"
+[ ! -z "$OU" ]    && SUBJECT="${SUBJECT}OU=${OU}/"
+SUBJECT="${SUBJECT}CN=${CN}/"
+
+output ${SUBJECT}
 
 ## Automated CSR Processing (no user input)
 
@@ -102,28 +113,35 @@ if ([ ! -f /opt/ca/private/ca.key ] || [ ! -f /opt/ca/ca.crt ]); then
 
     # Generate Certificate Authority in one sexy command-line
     openssl req -new -x509 -sha256 -days ${CADAYS:=3650} -nodes -newkey rsa:4096 \
-        -subj "/emailAddress=${EMAIL}/C=${C}/ST=${ST}/L=${L}/O=${O}/OU=${OU}/CN=${CN}" \
-        -extensions v3_ca -config /opt/openssl.cnf \
+        -subj "${SUBJECT}" \
+        -extensions v3_root -config /opt/openssl.cnf \
         -keyout /opt/ca/private/ca.key -out /opt/ca/ca.crt > /dev/null 2>&1
 
-    ## Create Random CRL Serial
+    ## Create Random CA Serial
     openssl rand -base64 16 | sha256sum | head -c 16 | tr '[:lower:]' '[:upper:]' > /opt/ca/ca.serial
+
+    cp /opt/ca/ca.crt /opt/public
+fi
+
+
+## CRL files are missing, regenerate entire structure destructively since it's borked anyway.
+if ([ ! -f /opt/ca/ca.crl ] || [ ! -f /opt/ca/crl.serial ]); then
+    test -f /opt/ca/private/ca.key  || ( echo "/opt/ca/private/ca.key not found..." && exit 1 )
+    test -f /opt/ca/ca.crt          || ( echo "/opt/ca/ca.crt not found..." && exit 1 )
 
     ## Create CRL Number
     echo 01 > /opt/ca/crl.serial
+    rm /opt/ca/ca.crl || true
 
     ## Create a blank CRL
-    openssl ca -name CA_default -gencrl \
+    openssl ca -name CA_root -gencrl \
         -keyfile /opt/ca/private/ca.key \
         -cert /opt/ca/ca.crt \
         -out /opt/ca/ca.crl \
         -crldays ${CRLDAYS:=3650} \
         -config /opt/openssl.cnf > /dev/null 2>&1
 
-    cp /opt/ca/ca.crt /opt/public
     cp /opt/ca/ca.crl /opt/public
-
-    output
 fi
 
 ## List Current CA for debugging and verification
@@ -161,16 +179,22 @@ function generateCertificate() {
     output " !! Generating a client certificate for $COMMONNAME"
 
     if [ "$NONINTERACTIVE" = true ] ; then
+        SUBJECT=$(echo $SUBJECT | sed "s/CN=[^/]+/CN=${COMMONNAME}/")
         NOPASS=" -passout pass:"
         openssl req -new -newkey rsa:4096 -keyout /opt/private/${COMMONNAME}.key -out /opt/private/${COMMONNAME}.csr -nodes \
-            -subj "/emailAddress=${EMAIL}/C=${C}/ST=${ST}/L=${L}/O=${O}/OU=${OU}/CN=${COMMONNAME}" \
+            -subj "${SUBJECT}" \
             -config /opt/openssl.runtime.cnf > /dev/null 2>&1
     else
+        output
         openssl req -new -newkey rsa:4096 -keyout /opt/private/${COMMONNAME}.key -out /opt/private/${COMMONNAME}.csr -nodes \
-            -config /opt/openssl.runtime.cnf
+            -config /opt/openssl.runtime.cnf 2>/dev/null
     fi
 
-    openssl ca -name CA_default -in /opt/private/${COMMONNAME}.csr -out /opt/private/${COMMONNAME}.crt -updatedb -config /opt/openssl.cnf -batch > /dev/null 2>&1
+    openssl ca -name CA_root \
+            -extensions v3_client \
+            -in /opt/private/${COMMONNAME}.csr \
+            -out /opt/private/${COMMONNAME}.crt \
+            -updatedb -config /opt/openssl.cnf -batch > /dev/null 2>&1
 
     md5cert="$(openssl x509 -in /opt/private/${COMMONNAME}.crt -noout -modulus | openssl md5)"
     md5key="$(openssl rsa -in /opt/private/${COMMONNAME}.key -noout -modulus | openssl md5)"
@@ -210,8 +234,8 @@ function revokeCertificate() {
             echo
         fi;
 
-        openssl ca -name CA_default -revoke /opt/private/${REVOKE}.crt -config /opt/openssl.cnf > /dev/null 2>&1 #-keyfile /opt/ca/private/ca.key -cert /opt/ca/ca.crt
-        openssl ca -name CA_default -gencrl -out /opt/ca/ca.crl -config /opt/openssl.cnf > /dev/null 2>&1 #-keyfile /opt/ca/private/ca.key -cert /opt/ca/ca.crt -out /opt/ca/ca.crl
+        openssl ca -name CA_root -revoke /opt/private/${REVOKE}.crt -config /opt/openssl.cnf > /dev/null 2>&1 #-keyfile /opt/ca/private/ca.key -cert /opt/ca/ca.crt
+        openssl ca -name CA_root -gencrl -out /opt/ca/ca.crl -config /opt/openssl.cnf > /dev/null 2>&1 #-keyfile /opt/ca/private/ca.key -cert /opt/ca/ca.crt -out /opt/ca/ca.crl
 
         SERIAL=`openssl x509 -in /opt/private/${REVOKE}.crt -noout -serial | awk -F "=" -e '{ print $2; }'`
         mkdir -p /opt/private/.revoked/${SERIAL}/
@@ -233,23 +257,6 @@ function revokeCertificate() {
 
 # Runtime Setup
 
-## Replace defaults with environment variables
-# cp /opt/openssl.cnf /opt/openssl.runtime.cnf
-# DEFAULT_C=`grep "countryName_default" /opt/openssl.cnf | awk -F "= " -e '{ print $2; }'`
-# DEFAULT_ST=`grep "stateOrProvinceName_default" /opt/openssl.cnf | awk -F "= " -e '{ print $2; }'`
-# DEFAULT_L=`grep "localityName_default" /opt/openssl.cnf | awk -F "= " -e '{ print $2; }'`
-# DEFAULT_O=`grep "0.organizationName_default" /opt/openssl.cnf | awk -F "= " -e '{ print $2; }'`
-# DEFAULT_OU=`grep "organizationalUnitName_default" /opt/openssl.cnf | awk -F "= " -e '{ print $2; }'`
-# DEFAULT_EMAIL=`grep "emailAddress_default" /opt/openssl.cnf | awk -F "= " -e '{ print $2; }'`
-# DEFAULT_CN=`grep "commonName_default" /opt/openssl.cnf | awk -F "= " -e '{ print $2; }'`
-
-# [ ! -z "$C" ]       && sed -i "s/${DEFAULT_C}/${C}/" /opt/openssl.runtime.cnf
-# [ ! -z "$ST" ]      && sed -i "s/${DEFAULT_ST}/${ST}/" /opt/openssl.runtime.cnf
-# [ ! -z "$L" ]       && sed -i "s/${DEFAULT_L}/${L}/" /opt/openssl.runtime.cnf
-# [ ! -z "$O" ]       && sed -i "s/${DEFAULT_O}/${O}/" /opt/openssl.runtime.cnf
-# [ ! -z "$OU" ]      && sed -i "s/${DEFAULT_OU}/${OU}/" /opt/openssl.runtime.cnf
-# [ ! -z "$EMAIL" ]   && sed -i "s/${DEFAULT_EMAIL}/${EMAIL}/" /opt/openssl.runtime.cnf
-
 ## Revoke Certificates
 if [ ! -z "$REVOKE" ]; then
     revokeCertificate $REVOKE
@@ -268,9 +275,4 @@ else
         generateCertificate ${COMMONNAME}
     done
 fi
-
-# openssl x509 -req -in request.csr -signkey key.pem -out certificate.pem  -extensions v3_req -extfile /opt/openssl.runtime.cnf
-
-# Show certificate details
-# openssl x509 -in certificate.pem -noout -text
 
