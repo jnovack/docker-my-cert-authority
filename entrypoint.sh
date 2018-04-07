@@ -13,12 +13,12 @@ if [ ! -f /opt/openssl.cnf ]; then
     echo
     echo " !! Initializing openssl.cnf..."
     echo
-    [ -z "$C" ]       && read -p "Set 'Country Name' (C) [no]: " -r Y && [ ! -z "${Y}" ] && read -p "-- Country Name (2 letter code) [XX]: " -r C
-    [ -z "$ST" ]      && read -p "Set 'State or Province Name' (ST) [no]: " -r Y && [ ! -z "${Y}" ] && read -p "-- State or Province Name (full name) [My State]: " -r ST
-    [ -z "$L" ]       && read -p "Set 'Locality Name' (L) [no]: " -r Y && [ ! -z "${Y}" ] && read -p "-- Locality Name (city, district) [My City]: " -r L
-    [ -z "$O" ]       && read -p "Set 'Organization Name' (O) [no]: " -r Y && [ ! -z "${Y}" ] && read -p "-- Organization Name (company) [My Company]: " -r O
-    [ -z "$OU" ]      && read -p "Set 'Organizational Unit Name' (OU) [no]: " -r Y && [ ! -z "${Y}" ] && read -p "-- Organizational Unit Name (department, division) [My Department]: " -r OU
-    [ -z "$EMAIL" ]   && read -p "Set 'Email Address' [no]: " -r Y && [ ! -z "${Y}" ] && read -p "-- Email Address [nobody@localhost]: " -r EMAIL
+    [ -z "$C" ]       && read -p "-- Country Name (2 letter code) []: " -r C
+    [ -z "$ST" ]      && read -p "-- State or Province Name (full name) []: " -r ST
+    [ -z "$L" ]       && read -p "-- Locality Name (city, district) []: " -r L
+    [ -z "$O" ]       && read -p "-- Organization Name (company) []: " -r O
+    [ -z "$OU" ]      && read -p "-- Organizational Unit Name (department, division) []: " -r OU
+    [ -z "$EMAIL" ]   && read -p "-- Email Address []: " -r EMAIL
     [ -z "$CN" ]      && read -p "-- Common Name [localhost.localdomain]: " -r CN
     cp /openssl.tmpl /opt/openssl.cnf
     [ ! -z "$EMAIL" ] && sed -i "s/nobody@localhost/${EMAIL}/" /opt/openssl.cnf      && sed -i "s/\#emailAddress/emailAddress/" /opt/openssl.cnf
