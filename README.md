@@ -93,31 +93,34 @@ docker run -it --rm \
 ## Container Structure
 
 ```
- /(root)
-  |-- opt/
+ /opt
+  |-- root/
        |-- ca/
        |    |-- private/
-       |    |    \-- ca.key        (Certificate Authority Private Key)
+       |    |    \-- ca.key          (Certificate Authority Private Key)
        |    |
-       |    |-- ca.crt             (Certificate Authority Certficate)
-       |    |-- ca.crl             (Certificate Revocation List)
-       |    |-- ca.serial          (Next Certificate Serial Number)
-       |    \-- crl.serial         (Current CRL serial number)
+       |    |-- ca.crt               (Certificate Authority Certficate)
+       |    |-- ca.crl               (Certificate Revocation List)
+       |    |-- ca.serial            (Next Certificate Serial Number)
+       |    |-- crl.serial           (Current CRL serial number)
+       |    \-- database             (Log of Certificate Authority activity)
+       |
+       |-- certs/
+       |    \-- SERIAL.pem           (Client Certificate + Text)
        |
        |-- private/
-       |    |-- filename.key       (Client Private Key)
-       |    |-- filename.p12       (Client PKCS12 File)
-       |    \-- filename.pem       (Client Key+Certificate)
+       |    |-- COMMONNAME.key       (Client Private Key)
+       |    |-- COMMONNAME.p12       (Client PKCS12 File)
+       |    \-- COMMONNAME.pem       (Client Key+Certificate)
        |
-       |-- public/                 (Public Sharable Directory)
-       |    |-- certs/             (Client Certificates)
-       |    |    \-- filename.pem  (Client Certificate)
+       |-- public/                   (Public Sharable Directory)
+       |    |-- certs/               (Client Certificates)
+       |    |    \-- COMMONNAME.crt  (Client Certificate)
        |    |
-       |    |-- ca.crt             (Certificate Authority Certficate)
-       |    \-- ca.crl             (Certificate Revocation List)
+       |    |-- ca.crt               (Certificate Authority Certficate)
+       |    \-- ca.crl               (Certificate Revocation List)
        |
-       |-- database                (Log of Certificate Authority activity)
-       |-- openssl.cnf             (OpenSSL Configuration File)
+       \-- openssl.cnf               (OpenSSL Configuration File)
 
 ```
 

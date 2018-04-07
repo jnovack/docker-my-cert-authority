@@ -54,29 +54,29 @@ while getopts ":g:r:i:k:p:qncl" opt; do
     case $opt in
         c)
             # Print out Certiciate Authority Cert
-            cat /opt/ca/ca.crt
+            cat /opt/root/ca.crt
             exit 0
             ;;
         i)
             # Print client certificate information
             if [ -z "$OPTARG" ]; then echo " !! Missing argument for -i"; exit 1; fi
-            openssl x509 -in /opt/private/${OPTARG}.crt -noout -subject -startdate -enddate -fingerprint -sha256 -serial | sed "s/^/        /g"
+            openssl x509 -in /opt/root/private/${OPTARG}.crt -noout -subject -startdate -enddate -fingerprint -sha256 -serial | sed "s/^/        /g"
             exit 0
             ;;
         l)
-            cat /opt/ca/ca.crl
+            cat /opt/root/ca.crl
             exit 0
             ;;
         p)
             if [ -z "$OPTARG" ]; then echo " !! Missing argument for -p"; exit 1; fi
             FILE=$(echo ${OPTARG} | sed -e 's/[^A-Za-z0-9._-]/_/g') # Basic sanitation.
-            cat /opt/private/${FILE}.crt
+            cat /opt/root/public/certs/${FILE}.crt
             exit 0
             ;;
         k)
             if [ -z "$OPTARG" ]; then echo " !! Missing argument for -k"; exit 1; fi
             FILE=$(echo ${OPTARG} | sed -e 's/[^A-Za-z0-9._-]/_/g') # Basic sanitation.
-            cat /opt/private/${FILE}.key
+            cat /opt/root/private/${FILE}.key
             exit 0
             ;;
         q)
@@ -98,48 +98,48 @@ while getopts ":g:r:i:k:p:qncl" opt; do
 done
 
 ## CA files are missing, regenerate entire structure destructively since it's borked anyway.
-if ([ ! -f /opt/ca/private/ca.key ] || [ ! -f /opt/ca/ca.crt ]); then
+if ([ ! -f /opt/root/ca/private/ca.key ] || [ ! -f /opt/root/ca.crt ]); then
     # Clean up old certs and files...
     output
     output " !! Creating Certificate Authority... please wait..."
 
-    rm -rf /opt/database.* && touch /opt/database.txt
-    rm -rf /opt/certs/     && mkdir /opt/certs/
-    rm -rf /opt/private    && mkdir /opt/private
-    rm -rf /opt/public     && mkdir -p /opt/public/certs
-    rm -rf /opt/ca         && mkdir -p /opt/ca/private
+    rm -rf /opt/root/
+    mkdir -p /opt/root/ca/private \
+        && mkdir -p /opt/root/private \
+        && mkdir -p /opt/root/public/certs \
+        && mkdir /opt/root/certs/ \
+        && touch /opt/root/ca/database.txt \
 
     # Generate Certificate Authority in one sexy command-line
     openssl req -new -x509 -sha256 -days ${CADAYS:=3650} -nodes -newkey rsa:4096 \
         -subj "${SUBJECT}" \
         -extensions v3_root -config /opt/openssl.cnf \
-        -keyout /opt/ca/private/ca.key -out /opt/ca/ca.crt > /dev/null 2>&1
+        -keyout /opt/root/ca/private/ca.key -out /opt/root/ca.crt > /dev/null 2>&1
 
     ## Create Random CA Serial
-    openssl rand -base64 16 | sha256sum | head -c 16 | tr '[:lower:]' '[:upper:]' > /opt/ca/ca.serial
+    openssl rand -base64 16 | sha256sum | head -c 16 | tr '[:lower:]' '[:upper:]' > /opt/root/ca/ca.serial
 
-    cp /opt/ca/ca.crt /opt/public
+    cp /opt/root/ca.crt /opt/root/public
 fi
 
 
 ## CRL files are missing, regenerate entire structure destructively since it's borked anyway.
-if ([ ! -f /opt/ca/ca.crl ] || [ ! -f /opt/ca/crl.serial ]); then
-    test -f /opt/ca/private/ca.key  || ( echo "/opt/ca/private/ca.key not found..." && exit 1 )
-    test -f /opt/ca/ca.crt          || ( echo "/opt/ca/ca.crt not found..." && exit 1 )
+if ([ ! -f /opt/root/ca.crl ] || [ ! -f /opt/root/ca/crl.serial ]); then
+    test -f /opt/root/ca/private/ca.key  || ( echo "/opt/root/ca/private/ca.key not found..." && exit 1 )
+    test -f /opt/root/ca.crt          || ( echo "/opt/root/ca.crt not found..." && exit 1 )
 
     ## Create CRL Number
-    echo 01 > /opt/ca/crl.serial
-    rm /opt/ca/ca.crl || true
+    echo 01 > /opt/root/ca/crl.serial
 
     ## Create a blank CRL
     openssl ca -name CA_root -gencrl \
-        -keyfile /opt/ca/private/ca.key \
-        -cert /opt/ca/ca.crt \
-        -out /opt/ca/ca.crl \
+        -keyfile /opt/root/ca/private/ca.key \
+        -cert /opt/root/ca.crt \
+        -out /opt/root/ca.crl \
         -crldays ${CRLDAYS:=3650} \
         -config /opt/openssl.cnf > /dev/null 2>&1
 
-    cp /opt/ca/ca.crl /opt/public
+    cp /opt/root/ca.crl /opt/root/public
 fi
 
 ## List Current CA for debugging and verification
@@ -147,14 +147,16 @@ if [ "$QUIET" != true ]; then
     echo
     echo " !! Using the following Certificate Authority:"
     echo
-    openssl x509 -in /opt/ca/ca.crt -noout -subject -startdate -enddate -fingerprint -sha256 -serial | sed "s/^/        /g"
+    openssl x509 -in /opt/root/ca.crt -noout -subject -startdate -enddate -fingerprint -sha256 -serial | sed "s/^/        /g"
 fi
 
 # Functions
 
 function generateCertificate() {
+    output
 
-    [ -f /opt/private/${COMMONNAME}.crt ] && echo " !! Certificate ${COMMONNAME}.crt already exists..." && exit 1;
+    [ -f /opt/root/public/certs/${COMMONNAME}.crt ] && echo " !! Certificate ${COMMONNAME}.crt already exists..." && exit 1;
+
 
     ## Replace defaults with environment variables for runtime
     cp /opt/openssl.cnf /opt/openssl.runtime.cnf
@@ -173,50 +175,51 @@ function generateCertificate() {
     sed -i "s/${DEFAULT_EMAIL}/${EMAIL}/" /opt/openssl.runtime.cnf
     sed -i "s/${DEFAULT_CN}/${COMMONNAME}/" /opt/openssl.runtime.cnf
 
-    output
     output " !! Generating a client certificate for $COMMONNAME"
 
     if [ "$NONINTERACTIVE" = true ] ; then
         SUBJECT=$(echo $SUBJECT | sed "s/CN=[^/]+/CN=${COMMONNAME}/")
         NOPASS=" -passout pass:"
-        openssl req -new -newkey rsa:4096 -keyout /opt/private/${COMMONNAME}.key -out /opt/private/${COMMONNAME}.csr -nodes \
+        openssl req -new -newkey rsa:4096 -keyout /opt/root/private/${COMMONNAME}.key -out /opt/root/private/${COMMONNAME}.csr -nodes \
             -subj "${SUBJECT}" \
             -config /opt/openssl.runtime.cnf > /dev/null 2>&1
     else
         output
-        openssl req -new -newkey rsa:4096 -keyout /opt/private/${COMMONNAME}.key -out /opt/private/${COMMONNAME}.csr -nodes \
-            -config /opt/openssl.runtime.cnf 2>/dev/null
+        openssl req -new -newkey rsa:4096 -keyout /opt/root/private/${COMMONNAME}.key -out /opt/root/private/${COMMONNAME}.csr -nodes \
+            -config /opt/openssl.runtime.cnf
     fi
 
     openssl ca -name CA_root \
-            -extensions v3_client \
-            -in /opt/private/${COMMONNAME}.csr \
-            -out /opt/private/${COMMONNAME}.crt \
+            -extensions v3_${EXTENSION} \
+            -in /opt/root/private/${COMMONNAME}.csr \
+            -out /opt/root/private/${COMMONNAME}.crt \
             -updatedb -config /opt/openssl.cnf -batch > /dev/null 2>&1
 
-    md5cert="$(openssl x509 -in /opt/private/${COMMONNAME}.crt -noout -modulus | openssl md5)"
-    md5key="$(openssl rsa -in /opt/private/${COMMONNAME}.key -noout -modulus | openssl md5)"
-    md5req="$(openssl req -in /opt/private/${COMMONNAME}.csr -noout -modulus | openssl md5)"
-
-    output
+    md5cert="$(openssl x509 -in /opt/root/private/${COMMONNAME}.crt -noout -modulus | openssl md5)"
+    md5key="$(openssl rsa -in /opt/root/private/${COMMONNAME}.key -noout -modulus | openssl md5)"
+    md5req="$(openssl req -in /opt/root/private/${COMMONNAME}.csr -noout -modulus | openssl md5)"
 
     if [ "${md5key}" == "${md5req}" ] && [ "${md5key}" == "${md5cert}" ]; then
         openssl pkcs12 -export -nodes -clcerts \
-            -in /opt/private/${COMMONNAME}.crt \
-            -inkey /opt/private/${COMMONNAME}.key \
-            -certfile /opt/ca/ca.crt \
+            -in /opt/root/private/${COMMONNAME}.crt \
+            -inkey /opt/root/private/${COMMONNAME}.key \
+            -certfile /opt/root/ca.crt \
             ${NOPASS} \
-            -out /opt/private/${COMMONNAME}.p12 > /dev/null 2>&1
+            -out /opt/root/private/${COMMONNAME}.p12 > /dev/null 2>&1
 
-        cat /opt/private/${COMMONNAME}.key > /opt/private/${COMMONNAME}.pem
-        cat /opt/private/${COMMONNAME}.crt >> /opt/private/${COMMONNAME}.pem
-        rm /opt/private/${COMMONNAME}.csr
+        cat /opt/root/private/${COMMONNAME}.key > /opt/root/private/${COMMONNAME}.pem
+        cat /opt/root/private/${COMMONNAME}.crt >> /opt/root/private/${COMMONNAME}.pem
+
+        SERIAL=`openssl x509 -in /opt/root/private/${COMMONNAME}.crt -noout -serial | awk -F "=" -e '{ print $2; }'`
+        openssl x509 -in /opt/root/private/${COMMONNAME}.crt -text > /opt/root/certs/${SERIAL}.pem
+        rm /opt/root/private/${COMMONNAME}.csr
 
         if [ "$QUIET" != true ]; then
             echo
-            openssl x509 -in /opt/private/${COMMONNAME}.crt -noout -subject -startdate -enddate -fingerprint -sha256 -serial | sed "s/^/        /g"
+            openssl x509 -in /opt/root/private/${COMMONNAME}.crt -noout -subject -startdate -enddate -fingerprint -sha256 -serial | sed "s/^/        /g"
             echo
         fi
+        mv /opt/root/private/${COMMONNAME}.crt /opt/root/public/certs/${COMMONNAME}.crt
     else
         output "ERROR: Keys did not generate properly.  Start crying now."
         exit 1
@@ -224,31 +227,32 @@ function generateCertificate() {
 }
 
 function revokeCertificate() {
-    if [ -f /opt/private/${REVOKE}.crt ]; then
+    if [ -f /opt/root/public/certs/${REVOKE}.crt ]; then
 
         if [ "$QUIET" != true ]; then
             echo
             echo " !! Revoking ${REVOKE}.crt"
-            openssl x509 -in /opt/private/${REVOKE}.crt -noout -subject -startdate -enddate -fingerprint -sha256 -serial | sed "s/^/        /g"
+            openssl x509 -in /opt/root/public/certs/${REVOKE}.crt -noout -subject -startdate -enddate -fingerprint -sha256 -serial | sed "s/^/        /g"
             echo
         fi;
 
-        openssl ca -name CA_root -revoke /opt/private/${REVOKE}.crt -config /opt/openssl.cnf > /dev/null 2>&1
-        openssl ca -name CA_root -gencrl -out /opt/ca/ca.crl -config /opt/openssl.cnf > /dev/null 2>&1
+        openssl ca -name CA_root -revoke /opt/root/public/certs/${REVOKE}.crt -config /opt/openssl.cnf > /dev/null 2>&1
+        openssl ca -name CA_root -gencrl -out /opt/root/ca.crl -config /opt/openssl.cnf > /dev/null 2>&1
 
-        SERIAL=`openssl x509 -in /opt/private/${REVOKE}.crt -noout -serial | awk -F "=" -e '{ print $2; }'`
-        mkdir -p /opt/private/.revoked/${SERIAL}/
-        mv /opt/private/${REVOKE}.* /opt/private/.revoked/${SERIAL}/
-        rm /opt/public/certs/${SERIAL}.pem
+        SERIAL=`openssl x509 -in /opt/root/public/certs/${REVOKE}.crt -noout -serial | awk -F "=" -e '{ print $2; }'`
+        mkdir -p /opt/root/private/.revoked/${SERIAL}/
+        mv /opt/root/certs/${SERIAL}.pem /opt/root/private/.revoked/${SERIAL}/
+        mv /opt/root/private/${REVOKE}.* /opt/root/private/.revoked/${SERIAL}/
+        rm /opt/public/certs/${REVOKE}.crt
 
         if [ "$QUIET" != true ]; then
-            openssl crl -in /opt/ca/ca.crl -noout -crlnumber -lastupdate -nextupdate
+            openssl crl -in /opt/root/ca.crl -noout -crlnumber -lastupdate -nextupdate
         fi;
-        cp /opt/ca/ca.crl /opt/public
-        cat /opt/ca/ca.crl
+        cp /opt/root/ca.crl /opt/public
+        cat /opt/root/ca.crl
     else
         output
-        output " !! /opt/private/${REVOKE}.crt does not exist..."
+        output " !! /opt/root/private/${REVOKE}.crt does not exist..."
         exit 1
     fi
     exit 0;
