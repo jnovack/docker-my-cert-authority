@@ -2,16 +2,16 @@
 default_md                      = sha256
 default_bits                    = 4096
 distinguished_name              = req_distinguished_name
+string_mask                     = utf8only
 
 [ ca ]
-default_ca                      = CA_default                # The name of the CA configuration to be used.
-                                                            # can be anything that makes sense to you.
+default_ca                      = CA_issue
 
 [ policy_match ]
-countryName                     = match
-stateOrProvinceName             = match
+countryName                     = supplied
+stateOrProvinceName             = supplied
 organizationName                = match
-organizationalUnitName          = optional
+organizationalUnitName          = supplied
 commonName                      = supplied
 emailAddress                    = optional
 
@@ -33,101 +33,163 @@ commonName                      = supplied
 emailAddress                    = optional
 
 [ req_distinguished_name ]
-countryName                     = Country Name (2 letter code)
-countryName_min                 = 2
-countryName_max                 = 2
-countryName_default             = XX
+#countryName                     = Country Name (2 letter code)
+#countryName_min                 = 2
+#countryName_max                 = 2
+#countryName_default             = XX
 
-stateOrProvinceName             = State or Province Name (full name)
-stateOrProvinceName_default     = My State
+#stateOrProvinceName             = State or Province Name (full name)
+#stateOrProvinceName_default     = My State
 
-localityName                    = Locality Name (city, district)
-localityName_default            = My City
+#localityName                    = Locality Name (city, district)
+#localityName_default            = My City
 
-0.organizationName              = Organization Name (company)
-0.organizationName_default      = My Company
+#0.organizationName              = Organization Name (company)
+#0.organizationName_default      = My Company
 
-organizationalUnitName          = Organizational Unit Name (department, division)
-organizationalUnitName_default  = My Department
+#organizationalUnitName          = Organizational Unit Name (department, division)
+#organizationalUnitName_default  = My Department
 
-emailAddress                    = Email Address
-emailAddress_max                = 64
-emailAddress_default            = nobody@localhost
+#emailAddress                    = Email Address
+#emailAddress_max                = 64
+#emailAddress_default            = nobody@localhost
 
 commonName                      = Common Name
 commonName_max                  = 64
 commonName_default              = localhost.localdomain
 
 
-[ CA_default ]
-dir                 = /opt                      # Directory where everything is kept
+[ CA_root ]
+dir                 = /opt/root                 # Directory where everything is kept
 certs               = $dir/certs                # Directory where the issued certs are kept
-crl_dir             = $dir/ca                   # Directory where the issued crl are kept
-database            = $dir/database.txt         # database index file.
+crl_dir             = $dir/                     # Directory where the issued crl are kept
+database            = $dir/ca/database.txt         # database index file.
 #unique_subject     = no                        # Set to 'no' to allow creation of
                                                 # several certificates with same subject.
-new_certs_dir       = $dir/public/certs         # Default directory for new certs.
-
-certificate         = $dir/ca/ca.crt            # The CA certificate
+new_certs_dir       = $dir/certs                # Default directory for new certs.
+certificate         = $dir/ca.crt               # The CA certificate
 serial              = $dir/ca/ca.serial         # The current serial number
 crlnumber           = $dir/ca/crl.serial        # The current crl number
-                                                # must be commented out to leave a V1 CRL
-crl                 = $dir/ca/ca.crl            # The current CRL
+crl                 = $dir/ca.crl               # The current CRL
 private_key         = $dir/ca/private/ca.key    # The private key
 RANDFILE            = $dir/ca/private/.rand     # private random number file
-
-x509_extensions     = v3_client                 # The extentions to add to the cert
-
+x509_extensions     = v3_intermediate           # The extentions to add to the cert
 name_opt            = ca_default                # Subject Name options
 cert_opt            = ca_default                # Certificate field options
-
 default_days        = 3650                      # how long to certify for
 default_crl_days    = 3650                      # how long before next CRL
 default_md          = sha256                    # use public key default MD
 default_bits        = 4096
 preserve            = no                        # keep passed DN ordering
+email_in_dn         = no                        # do not add Email Address to DN
+policy              = policy_match
 
+[ CA_intermediate ]
+dir                 = /opt/intermediate         # Directory where everything is kept
+certs               = $dir/certs                # Directory where the issued certs are kept
+crl_dir             = $dir/                     # Directory where the issued crl are kept
+database            = $dir/ca/database.txt         # database index file.
+#unique_subject     = no                        # Set to 'no' to allow creation of
+                                                # several certificates with same subject.
+new_certs_dir       = $dir/certs                # Default directory for new certs.
+certificate         = $dir/ca.crt               # The CA certificate
+serial              = $dir/ca/ca.serial         # The current serial number
+crlnumber           = $dir/ca/crl.serial        # The current crl number
+crl                 = $dir/ca.crl               # The current CRL
+private_key         = $dir/ca/private/ca.key    # The private key
+RANDFILE            = $dir/ca/private/.rand     # private random number file
+x509_extensions     = v3_issue                  # The extentions to add to the cert
+name_opt            = ca_default                # Subject Name options
+cert_opt            = ca_default                # Certificate field options
+default_days        = 3650                      # how long to certify for
+default_crl_days    = 3650                      # how long before next CRL
+default_md          = sha256                    # use public key default MD
+default_bits        = 4096
+preserve            = no                        # keep passed DN ordering
+email_in_dn         = no                        # do not add Email Address to DN
+policy              = policy_supplied
+
+[ CA_issue ]
+dir                 = /opt/issue                # Directory where everything is kept
+certs               = $dir/certs                # Directory where the issued certs are kept
+crl_dir             = $dir/                     # Directory where the issued crl are kept
+database            = $dir/ca/database.txt         # database index file.
+#unique_subject     = no                        # Set to 'no' to allow creation of
+                                                # several certificates with same subject.
+new_certs_dir       = $dir/certs                # Default directory for new certs.
+certificate         = $dir/ca.crt               # The CA certificate
+serial              = $dir/ca/ca.serial         # The current serial number
+crlnumber           = $dir/ca/crl.serial        # The current crl number
+crl                 = $dir/ca.crl               # The current CRL
+private_key         = $dir/ca/private/ca.key    # The private key
+RANDFILE            = $dir/ca/private/.rand     # private random number file
+x509_extensions     = v3_client                 # The extentions to add to the cert
+name_opt            = ca_default                # Subject Name options
+cert_opt            = ca_default                # Certificate field options
+default_days        = 3650                      # how long to certify for
+default_crl_days    = 3650                      # how long before next CRL
+default_md          = sha256                    # use public key default MD
+default_bits        = 4096
+preserve            = no                        # keep passed DN ordering
+email_in_dn         = no                        # do not add Email Address to DN
 policy              = policy_optional
 
+
 [ v3_all ]
-nsCertType          = server, client, email, objsign, sslCA
-basicConstraints    = CA:true
-keyUsage            = digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment, cRLSign, keyCertSign
-extendedKeyUsage    = serverAuth, clientAuth, codeSigning, emailProtection, timeStamping, OCSPSigning
-nsComment           = "Generated by jnovack/my-cert-authority [ v3_all ]"
+basicConstraints       = critical, CA:TRUE
+keyUsage               = critical, digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment, cRLSign, keyCertSign
+extendedKeyUsage       = critical, serverAuth, clientAuth, codeSigning, emailProtection, timeStamping, OCSPSigning
+nsComment              = "Generated by jnovack/my-cert-authority [ v3_all ]"
+subjectKeyIdentifier   = hash
+authorityKeyIdentifier = keyid:always,issuer
 
+[ v3_root ]
+basicConstraints       = critical, CA:TRUE
+keyUsage               = critical, digitalSignature, cRLSign, keyCertSign
+extendedKeyUsage       = OCSPSigning
+nsComment              = "Generated by jnovack/my-cert-authority [ v3_root ]"
+subjectKeyIdentifier   = hash
+authorityKeyIdentifier = keyid:always,issuer
 
-[ v3_ca ]
-nsCertType          = sslCA
-basicConstraints    = CA:true
-keyUsage            = critical, digitalSignature, cRLSign, keyCertSign
-extendedKeyUsage    = timeStamping, OCSPSigning
-nsComment           = "Generated by jnovack/my-cert-authority [ v3_ca ]"
+[ v3_intermediate ]
+basicConstraints       = critical, CA:TRUE
+keyUsage               = critical, digitalSignature, cRLSign, keyCertSign
+extendedKeyUsage       = OCSPSigning
+nsComment              = "Generated by jnovack/my-cert-authority [ v3_intermediate ]"
+subjectKeyIdentifier   = hash
+authorityKeyIdentifier = keyid:always,issuer
 
+[ v3_issue ]
+basicConstraints       = critical, CA:TRUE, pathlen:0
+keyUsage               = critical, digitalSignature, cRLSign, keyCertSign
+extendedKeyUsage       = OCSPSigning
+nsComment              = "Generated by jnovack/my-cert-authority [ v3_issue ]"
+subjectKeyIdentifier   = hash
+authorityKeyIdentifier = keyid:always,issuer
 
 [ v3_server ]
-nsCertType          = server, client, email, objsign
-basicConstraints    = CA:false
-keyUsage            = digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
-extendedKeyUsage    = serverAuth, timeStamping
-nsComment           = "Generated by jnovack/my-cert-authority [ v3_server ]"
-
+basicConstraints       = CA:FALSE
+keyUsage               = critical, digitalSignature, keyEncipherment
+extendedKeyUsage       = critical, serverAuth
+nsComment              = "Generated by jnovack/my-cert-authority [ v3_server ]"
+subjectKeyIdentifier   = hash
+authorityKeyIdentifier = keyid:always,issuer
 
 [ v3_client ]
-nsCertType          = client
-basicConstraints    = CA:false
-keyUsage            = digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
-extendedKeyUsage    = clientAuth
-nsComment           = "Generated by jnovack/my-cert-authority [ v3_client ]"
-
+basicConstraints       = CA:FALSE
+keyUsage               = critical, digitalSignature, nonRepudiation, keyEncipherment
+extendedKeyUsage       = critical, clientAuth
+nsComment              = "Generated by jnovack/my-cert-authority [ v3_client ]"
+subjectKeyIdentifier   = hash
+authorityKeyIdentifier = keyid:always,issuer
 
 [ v3_user ]
-nsCertType          = client, email, objsign
-basicConstraints    = CA:false
-keyUsage            = digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
-extendedKeyUsage    = clientAuth, codeSigning, emailProtection
-nsComment           = "Generated by jnovack/my-cert-authority [ v3_user ]"
-
+basicConstraints       = CA:FALSE
+keyUsage               = critical, digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
+extendedKeyUsage       = critical, clientAuth, codeSigning, emailProtection
+nsComment              = "Generated by jnovack/my-cert-authority [ v3_user ]"
+subjectKeyIdentifier   = hash
+authorityKeyIdentifier = keyid:always,issuer
 
 [ alt_names ]
 # Use subjectAltName = @alt_names under a v3_req section to enable.
