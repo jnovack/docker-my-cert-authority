@@ -82,6 +82,7 @@ while getopts ":g:r:i:k:p:e:qncl" opt; do
             [ ! -z "$OPTARG" ] \
                 || [ $OPTARG == "s"] || [ $OPTARG == "server"] \
                 || [ $OPTARG == "c"] || [ $OPTARG == "client"] \
+                || [ $OPTARG == "v"] || [ $OPTARG == "service"] \
                 || [ $OPTARG == "u"] || [ $OPTARG == "user"] \
                 || (echo " !! -e [server|client|user]"; exit 1)
             EXTENSION=$OPTARG
@@ -166,7 +167,7 @@ function generateCertificate() {
 
     [ -f /opt/root/public/certs/${COMMONNAME}.crt ] && echo " !! Certificate ${COMMONNAME}.crt already exists..." && exit 1;
 
-    while [ -z $EXTENSION ] && read -p "Type (server, client, user): " -r OPT && [ -n "${OPT}" ]; do
+    while [ -z $EXTENSION ] && read -p "Type (server, service, client, user): " -r OPT && [ -n "${OPT}" ]; do
         case $OPT in
             server)
                 EXTENSION="server"
@@ -174,6 +175,14 @@ function generateCertificate() {
                 ;;
             s)
                 EXTENSION="server"
+                break
+                ;;
+            service)
+                EXTENSION="service"
+                break
+                ;;
+            v)
+                EXTENSION="service"
                 break
                 ;;
             client)
