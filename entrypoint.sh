@@ -48,7 +48,7 @@ SUBJECT="/"
 [ ! -z "$OU" ]    && SUBJECT="${SUBJECT}OU=${OU}/"
 SUBJECT="${SUBJECT}CN=${CN}/"
 
-while getopts ":g:r:i:k:p:e:qncl" opt; do
+while getopts ":g:r:i:k:p:u:e:qncl" opt; do
     case $opt in
         c)
             # Print out Certiciate Authority Cert
@@ -75,6 +75,12 @@ while getopts ":g:r:i:k:p:e:qncl" opt; do
             if [ -z "$OPTARG" ]; then echo " !! Missing argument for -k"; exit 1; fi
             FILE=$(echo ${OPTARG} | sed -e 's/[^A-Za-z0-9._-]/_/g') # Basic sanitation.
             cat /opt/root/private/${FILE}.key
+            EXIT=true
+            ;;
+        u)
+            if [ -z "$OPTARG" ]; then echo " !! Missing argument for -u"; exit 1; fi
+            FILE=$(echo ${OPTARG} | sed -e 's/[^A-Za-z0-9._-]/_/g') # Basic sanitation.
+            cat /opt/root/private/${FILE}.p12 | uuencode -m ${FILE}.p12
             EXIT=true
             ;;
         e)

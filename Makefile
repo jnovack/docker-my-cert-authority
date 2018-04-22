@@ -55,3 +55,6 @@ showca:
 
 showcrl:
 	@docker run -it --mount source=ca-$(DOMAIN),target=/opt --rm jnovack/my-cert-authority -l
+
+showp12:
+	@docker run -it --mount source=ca-$(DOMAIN),target=/opt --rm jnovack/my-cert-authority -u ${CN}

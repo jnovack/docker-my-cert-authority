@@ -46,6 +46,7 @@ client certificates to create.
 * `-r commonName` - Revoke a client certificate
 * `-p commonName` - Print client public certificate
 * `-k commonName` - Print client private key
+* `-u commonName` - Print uuencoded p12 certificate
 * `-i commonName` - Print client certificate information
 * `-e certificateType` - Client Certificate Type (server, user, client)
 
@@ -111,6 +112,17 @@ docker run -it --rm \
 docker run -it --rm \
     --mount source=ca-project.example,target=/opt/ jnovack/my-cert-authority \
     -cp user.project.example -k user.project.example
+```
+
+### Export PKCS12 File
+
+The PKCS12 file gets exported with `uuencode`, you will need to `uudecode` it
+on your host machine to generate the file.
+
+```
+docker run -it --rm \
+    --mount source=ca-project.example,target=/opt/ jnovack/my-cert-authority \
+    -u user.project.example | uudecode
 ```
 
 ## Container Structure
