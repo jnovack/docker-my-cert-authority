@@ -2,6 +2,32 @@
 
 # Pre-flight Checks
 
+if [ $1 == "-h" ]; then
+    cat << EOF
+Generates certificates for multi-purpose use.
+
+  Certificate Authority Options:
+    -c              print CA.crt
+    -l              print certificate revocation list
+
+  Client Request Options:
+    -e              generate certificate type
+                       ('server', 'client', 'service', 'user')
+    -q              print less crap on screen
+    -n              non-interactive (use defaults)
+    -g <cn>         generate certificate for <cn>
+    -r <cn>         revoke certificate for <cn>
+
+  Client Certificate Options:
+    -p <cn>         print client public certificate
+    -k <cn>         print client private key
+    -i <cn>         print client certificate information
+    -u <cn>         print client PKCS12 file (uuencoded)
+
+EOF
+    exit 0;
+fi
+
 ## Output Function
 
 function output() {
@@ -167,7 +193,6 @@ if [ "$QUIET" != true ]; then
 fi
 
 # Functions
-
 function generateCertificate() {
     output
 
