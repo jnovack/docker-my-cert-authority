@@ -4,6 +4,7 @@
 
 if [ $1 == "-h" ]; then
     cat << EOF
+jnovack/my-cert-authority ${VERSION} built ${DATE} (branch ${BRANCH}, commit ${COMMIT})
 Generates certificates for multi-purpose use.
 
   Certificate Authority Options:
