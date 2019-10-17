@@ -2,7 +2,7 @@
 
 # Pre-flight Checks
 
-if [ $1 == "-h" ]; then
+if [ "$1" == "-h" ]; then
     cat << EOF
 jnovack/my-cert-authority ${VERSION} built ${DATE} (branch ${BRANCH}, commit ${COMMIT})
 Generates certificates for multi-purpose use.
@@ -380,4 +380,3 @@ else
         generateCertificate ${COMMONNAME}
     done
 fi
-
