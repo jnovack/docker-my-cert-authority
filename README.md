@@ -125,6 +125,25 @@ docker run -it --rm \
     -u user.project.example | uudecode
 ```
 
+#### Change Password on PKCS12 File
+
+For security reasons, MacOSX does not let you import a `.p12` file that does
+not have a password.
+
+You can verify the structure and state of the password of the `.p12` file
+from the command-line.
+
+```
+# with password
+openssl pkcs12 -in user.p12 -nodes -clcerts -password pass:<password>
+```
+```
+# without password
+openssl pkcs12 -in user.p12 -nodes -clcerts -password pass:
+```
+
+If there is no password, you will be required to add one.
+
 ## Container Structure
 
 ```
