@@ -154,7 +154,7 @@ if ([ ! -f /opt/root/ca/private/ca.key ] || [ ! -f /opt/root/ca.crt ]); then
         && touch /opt/root/ca/database.txt \
 
     # Generate Certificate Authority in one sexy command-line
-    openssl req -new -x509 -sha256 -days ${CADAYS:=3650} -nodes -newkey rsa:4096 \
+    openssl req -new -x509 -sha256 -days ${CADAYS:=3650} -nodes -newkey rsa:${KEYSIZE:=4096} \
         -subj "${SUBJECT}" \
         -extensions v3_root -config /opt/openssl.cnf \
         -keyout /opt/root/ca/private/ca.key -out /opt/root/ca.crt > /dev/null 2>&1
@@ -278,12 +278,12 @@ function generateCertificate() {
     if [ "$NONINTERACTIVE" = true ] ; then
         SUBJECT=$(echo $SUBJECT | sed -e "s/CN=[^/]\+/CN=${COMMONNAME}/")
         NOPASS=" -passout pass:"
-        openssl req -new -newkey rsa:4096 -keyout /opt/root/private/${COMMONNAME}.key -out /opt/root/private/${COMMONNAME}.csr -nodes \
+        openssl req -new -newkey rsa:${KEYSIZE:=4096} -keyout /opt/root/private/${COMMONNAME}.key -out /opt/root/private/${COMMONNAME}.csr -nodes \
             -subj "${SUBJECT}" \
             -config /opt/openssl.runtime.cnf > /dev/null 2>&1
     else
         output
-        openssl req -new -newkey rsa:4096 -keyout /opt/root/private/${COMMONNAME}.key -out /opt/root/private/${COMMONNAME}.csr -nodes \
+        openssl req -new -newkey rsa:${KEYSIZE:=4096} -keyout /opt/root/private/${COMMONNAME}.key -out /opt/root/private/${COMMONNAME}.csr -nodes \
             -config /opt/openssl.runtime.cnf
     fi
 
