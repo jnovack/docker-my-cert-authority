@@ -256,6 +256,7 @@ function generateCertificate() {
     if [ $EXTENSION == "server" ]; then
         echo "" >> /opt/openssl.runtime.cnf
         echo "[ san_custom ]" >> /opt/openssl.runtime.cnf
+        sed -i "s/#subjectAltName/subjectAltName/" /opt/openssl.runtime.cnf
 
         echo -e "Please list your IP SANs. End with a blank line..."
         i=1
