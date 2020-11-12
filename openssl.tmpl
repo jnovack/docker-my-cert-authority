@@ -33,34 +33,34 @@ commonName                      = supplied
 emailAddress                    = optional
 
 [ req_distinguished_name ]
-#countryName                     = Country Name (2 letter code)
-#countryName_min                 = 2
-#countryName_max                 = 2
-#countryName_default             = XX
+# countryName                     = Country Name (2 letter code)
+# countryName_min                 = 2
+# countryName_max                 = 2
+# countryName_default             = XX
 
-#stateOrProvinceName             = State or Province Name (full name)
-#stateOrProvinceName_default     = My State
+# stateOrProvinceName             = State or Province Name (full name)
+# stateOrProvinceName_default     = My State
 
-#localityName                    = Locality Name (city, district)
-#localityName_default            = My City
+# localityName                    = Locality Name (city, district)
+# localityName_default            = My City
 
-#0.organizationName              = Organization Name (company)
-#0.organizationName_default      = My Company
+# 0.organizationName              = Organization Name (company)
+# 0.organizationName_default      = My Company
 
-#organizationalUnitName          = Organizational Unit Name (department, division)
-#organizationalUnitName_default  = My Department
+# organizationalUnitName          = Organizational Unit Name (department, division)
+# organizationalUnitName_default  = My Department
 
-#emailAddress                    = Email Address
-#emailAddress_max                = 64
-#emailAddress_default            = nobody@localhost
+# emailAddress                    = Email Address
+# emailAddress_max                = 64
+# emailAddress_default            = nobody@localhost
 
 commonName                      = Common Name
 commonName_max                  = 64
 commonName_default              = localhost.localdomain
 
 # include a prompt for alternative names…
-#subjectAltName = Alternative DNS names (comma seperated list, e.g. DNS:localhost,DNS:localhost.localdomain)
-#subjectAltName_default = DNS:myhost.com.au
+# subjectAltName = Alternative DNS names (comma seperated list, e.g. DNS:localhost,DNS:localhost.localdomain)
+# subjectAltName_default = DNS:myhost.com.au
 
 
 [ CA_root ]
@@ -68,7 +68,7 @@ dir                 = /opt/root                 # Directory where everything is 
 certs               = $dir/certs                # Directory where the issued certs are kept
 crl_dir             = $dir/                     # Directory where the issued crl are kept
 database            = $dir/ca/database.txt         # database index file.
-#unique_subject     = no                        # Set to 'no' to allow creation of
+# unique_subject     = no                        # Set to 'no' to allow creation of
                                                 # several certificates with same subject.
 new_certs_dir       = $dir/certs                # Default directory for new certs.
 certificate         = $dir/ca.crt               # The CA certificate
@@ -94,7 +94,7 @@ dir                 = /opt/intermediate         # Directory where everything is 
 certs               = $dir/certs                # Directory where the issued certs are kept
 crl_dir             = $dir/                     # Directory where the issued crl are kept
 database            = $dir/ca/database.txt         # database index file.
-#unique_subject     = no                        # Set to 'no' to allow creation of
+# unique_subject     = no                        # Set to 'no' to allow creation of
                                                 # several certificates with same subject.
 new_certs_dir       = $dir/certs                # Default directory for new certs.
 certificate         = $dir/ca.crt               # The CA certificate
@@ -120,7 +120,7 @@ dir                 = /opt/issue                # Directory where everything is 
 certs               = $dir/certs                # Directory where the issued certs are kept
 crl_dir             = $dir/                     # Directory where the issued crl are kept
 database            = $dir/ca/database.txt         # database index file.
-#unique_subject     = no                        # Set to 'no' to allow creation of
+# unique_subject     = no                        # Set to 'no' to allow creation of
                                                 # several certificates with same subject.
 new_certs_dir       = $dir/certs                # Default directory for new certs.
 certificate         = $dir/ca.crt               # The CA certificate
@@ -209,4 +209,3 @@ authorityKeyIdentifier = keyid:always,issuer
 # Use subjectAltName = @san_custom under a v3_req section to enable.
 #IP=127.0.0.1
 #DNS=localhost
-
