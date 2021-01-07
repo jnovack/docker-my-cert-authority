@@ -255,23 +255,27 @@ function generateCertificate() {
 
     if [ $EXTENSION == "server" ]; then
         echo "" >> /opt/openssl.runtime.cnf
-        echo "[ san_custom ]" >> /opt/openssl.runtime.cnf
-        sed -i "s/#subjectAltName/subjectAltName/" /opt/openssl.runtime.cnf
+        echo -n "Add subject alternative names (y/n)? "
+        read answer
 
-        echo -e "Please list your IP SANs. End with a blank line..."
-        i=1
-        while read -p "$(echo IP.${i} = ) "  -r line && [ -n "${line}" ]; do
-            echo "IP.${i} = ${line}" >> /opt/openssl.runtime.cnf
-            i=$((i+1))
-        done
+        if [ "$answer" != "${answer#[Yy]}" ] ;then
+            echo "[ san_custom ]" >> /opt/openssl.runtime.cnf
+            sed -i "s/#subjectAltName/subjectAltName/" /opt/openssl.runtime.cnf
 
-        echo "DNS.1 = ${COMMONNAME}" >> /opt/openssl.runtime.cnf
-        echo -e "Please list your additional DNS SANs. End with a blank line..."
-        i=2
-        while read -p "$(echo DNS.${i} = ) " -r line && [ -n "${line}" ]; do
-            echo "DNS.${i} = ${line}" >> /opt/openssl.runtime.cnf
-            i=$((i+1))
-        done
+            echo -e "Please list your IP SANs. End with a blank line..."
+            i=1
+            while read -p "$(echo IP.${i} = ) "  -r line && [ -n "${line}" ]; do
+                echo "IP.${i} = ${line}" >> /opt/openssl.runtime.cnf
+                i=$((i+1))
+            done
+
+            echo -e "Please list your additional DNS SANs. End with a blank line..."
+            i=1
+            while read -p "$(echo DNS.${i} = ) " -r line && [ -n "${line}" ]; do
+                echo "DNS.${i} = ${line}" >> /opt/openssl.runtime.cnf
+                i=$((i+1))
+            done
+        fi
     fi
 
     output " !! Generating a ${EXTENSION} certificate for ${COMMONNAME}"
